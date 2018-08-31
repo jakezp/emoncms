@@ -1,0 +1,2 @@
+* * * * * date >> /var/log/cron.log 2>&1
+* * * * * /home/pi/emonpi/service-runner >> /var/log/service-runner.log 2>&1
