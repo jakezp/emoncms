@@ -3,8 +3,7 @@
 Emoncms is a powerful open-source web-app for processing, logging and visualizing energy, temperature and other environmental data. 
 Emoncms with mqtt_input configured
 
-Run with:
-
+***Run with:***
 ```
 docker run -d --name='emoncms-mqtt' --net='bridge' \
           -e 'MYSQL_PASSWORD'='password' \
