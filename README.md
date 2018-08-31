@@ -21,6 +21,6 @@ docker run -d --name='emoncms-mqtt' --net='bridge' \
           jakezp/emoncms
 ```
 Change:
-              MYSQL_PASSWORD - MySQL password
-              MQTT_HOST - MQTT hostname or IP (If MQTT_HOST is not specified, MQTT support will not be enabled)
+              MYSQL_PASSWORD - MySQL password<br>
+              MQTT_HOST - MQTT hostname or IP (If MQTT_HOST is not specified, MQTT support will not be enabled)<br>
               /tmp/emoncms - preferred location on the host
