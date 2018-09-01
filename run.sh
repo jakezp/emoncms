@@ -83,11 +83,15 @@ if [[ ! -f $SETPHP ]]; then
   sed -i "s/_DB_PASSWORD_/$MYSQL_PASSWORD/" "$EMON_DIR/settings.php"
   sed -i "s/localhost/127.0.0.1/" "$EMON_DIR/settings.php"
   sed -i "s/redis_enabled = false;/redis_enabled = true;/" "$EMON_DIR/settings.php"
+  sed -i 's/$homedir = "\/home\/username"/$homedir = "\/home\/pi"/' "$EMON_DIR/settings.php"
+  # Configure MQTT if host is specified
   if [[ -n $MQTT_HOST ]]; then
     sed -i "s/mqtt_enabled = false;/mqtt_enabled = true;/" "$EMON_DIR/settings.php"
     sed -i "s/mqtt_server = array( 'host'     => '127.0.0.1'/mqtt_server = array( 'host'     => '$MQTT_HOST'/g" "$EMON_DIR/settings.php"
   fi
-  sed -i 's/$homedir = "\/home\/username"/$homedir = "\/home\/pi"/' "$EMON_DIR/settings.php"
+  if [[ ! -n /home/pi/backup.php ]]; then
+    cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
+  fi
 fi
 
 echo "==========================================================="
