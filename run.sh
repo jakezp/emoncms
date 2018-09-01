@@ -91,6 +91,7 @@ if [[ ! -f $SETPHP ]]; then
   fi
   if [[ ! -f /home/pi/backup.php ]]; then
     cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
+    cp -R /usr/local/bin/emoncms_usefulscripts/backup/lib /home/pi/
   fi
 fi
 
