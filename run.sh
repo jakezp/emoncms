@@ -89,7 +89,7 @@ if [[ ! -f $SETPHP ]]; then
     sed -i "s/mqtt_enabled = false;/mqtt_enabled = true;/" "$EMON_DIR/settings.php"
     sed -i "s/mqtt_server = array( 'host'     => '127.0.0.1'/mqtt_server = array( 'host'     => '$MQTT_HOST'/g" "$EMON_DIR/settings.php"
   fi
-  if [[ ! -n /home/pi/backup.php ]]; then
+  if [[ ! -f /home/pi/backup.php ]]; then
     cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
   fi
 fi
