@@ -66,7 +66,7 @@ RUN chmod 666 /var/log/service-runner.log
 RUN chmod 666 /var/log/cron.log
 
 # Expose them as volumes for mounting by host
-VOLUME ["/etc/mysql", "/var/lib/mysql", "/var/lib/phpfiwa", "/var/lib/phpfina", "/var/lib/phptimeseries", "/var/www/html", "/var/spool/cron/crontabs/"' "/home/pi"]
+VOLUME ["/etc/mysql", "/var/lib/mysql", "/var/lib/phpfiwa", "/var/lib/phpfina", "/var/lib/phptimeseries", "/var/www/html", "/var/spool/cron/crontabs/", "/home/pi"]
 
 EXPOSE 80 3306
 
