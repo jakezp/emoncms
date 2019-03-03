@@ -87,7 +87,7 @@ if [[ ! -f $SETPHP ]]; then
     if [[ -z $MQTT_PORT ]]; then
       MQTT_PORT="1883"
     fi
-    sed -i "s/$mqtt_enabled = true;.*/$mqtt_enabled = true;\n    $mqtt_server = array( 'host'     => '$MQTT_HOST',\n              'port'     => $MQTT_PORT,\n              'user'     => '$MQTT_USER',\n              'password' => '$MQTT_PASS',\n              'basetopic'=> 'emon',\n              'client_id' => 'emoncms'\n              );/g" $EMON_DIR/settings.php"
+    sed -i "s/$mqtt_enabled = true;.*/$mqtt_enabled = true;\n    $mqtt_server = array( 'host'     => '$MQTT_HOST',\n              'port'     => $MQTT_PORT,\n              'user'     => '$MQTT_USER',\n              'password' => '$MQTT_PASS',\n              'basetopic'=> 'emon',\n              'client_id' => 'emoncms'\n              );/g" $EMON_DIR/settings.php
   fi
   if [[ ! -f /home/pi/backup.php ]]; then
     cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
