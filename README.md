@@ -8,6 +8,9 @@ Emoncms with mqtt_input configured
 docker run -d --name='emoncms-mqtt' --net='bridge' \
           -e 'MYSQL_PASSWORD'='password' \
           -e 'MQTT_HOST'='host_ip' \
+          -e 'MQTT_PORT'='1883' \
+          -e 'MQTT_USER'='username' \
+          -e 'MQTT_PASS'='password' \
           -p '8080:80/tcp' \
           -v '/tmp/emoncms/etc/mysql':'/etc/mysql' \
           -v '/tmp/emoncms/mysql':'/var/lib/mysql' \
@@ -19,7 +22,10 @@ docker run -d --name='emoncms-mqtt' --net='bridge' \
           -v '/etc/localtime':'/etc/localtime':'ro' \
           jakezp/emoncms
 ```
-***Change:*** <br>
-              **MYSQL_PASSWORD** - MySQL password<br>
-              **MQTT_HOST** - MQTT hostname or IP (If MQTT_HOST is not specified, MQTT support will not be enabled)<br>
+***Change:*** <br/>
+              **MYSQL_PASSWORD** - MySQL password<br/>
+              **MQTT_HOST** - MQTT hostname or IP (If MQTT_HOST is not specified, MQTT support will not be enabled)<br/>
+              **MQTT_PORT** - Optional. If not specified, 1883 will be configured.<br/>
+              **MQTT_USER** - Optional. If not specified, it will be left blank.<br/>
+              **MQTT_PASS** - Optional. If not specified, it will be left blank.<br/>
               **/tmp/emoncms** - preferred location on the host
