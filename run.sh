@@ -1,8 +1,9 @@
 #!/bin/bash
 
 # Autogenerate MYSQL password if it was not specified
+echo -e "\n=> Setting up MYSQL password"
 if [[ -z $MYSQL_PASSWORD ]] && [[ ! -f /home/pi/mysql_passwd ]]; then
-   MYSQL_PASSWORD=$(dd if=/dev/urandom bs=18 count=1 2>/dev/null | base64)
+   MYSQL_PASSWORD=$(dd if=/dev/urandom bs=10 count=1 2>/dev/null | base64)
    echo $MYSQL_PASSWORD > /home/pi/mysql_passwd
 fi
 
@@ -50,7 +51,7 @@ if [[ ! -d $MYSQL_HOME/mysql ]]; then
     chown mysql:mysql /var/run/mysqld > /dev/null 2>&1
   fi
 else
-  echo -e "\n=> Using an existing volume of MySQL"
+  echo -e "\n=> Using an existing volume of MySQL (or mysql_install_db already completed)"
 fi
 
 # Ensuring ownership is set correctly on directories
@@ -82,7 +83,11 @@ if [[ ! -f $SETPHP ]]; then
   # Configure MQTT if host is specified
   if [[ -n $MQTT_HOST ]]; then
     sed -i "s/mqtt_enabled = false;/mqtt_enabled = true;/" "$EMON_DIR/settings.php"
-    sed -i "s/mqtt_server = array( 'host'     => '127.0.0.1'/mqtt_server = array( 'host'     => '$MQTT_HOST'/g" "$EMON_DIR/settings.php"
+    sed -i "/mqtt_server = array( 'host'     => '127.0.0.1'/,+6d" "$EMON_DIR/settings.php"
+    if [[ -z $MQTT_PORT ]]; then
+      MQTT_PORT="1883"
+    fi
+    sed -i "s/$mqtt_enabled = true;.*/$mqtt_enabled = true;\n    $mqtt_server = array( 'host'     => '$MQTT_HOST',\n              'port'     => $MQTT_PORT,\n              'user'     => '$MQTT_USER',\n              'password' => '$MQTT_PASS',\n              'basetopic'=> 'emon',\n              'client_id' => 'emoncms'\n              );/g" $EMON_DIR/settings.php"
   fi
   if [[ ! -f /home/pi/backup.php ]]; then
     cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
@@ -106,7 +111,7 @@ if [[ ! -f /var/spool/cron/crontabs/pi ]]; then
   mv /root/crontab /var/spool/cron/crontabs/pi
 fi
 touch /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/*
-chmod 0600 /etc/cron.d/emoncms /var/spool/cron/crontabs/pi
+chmod 0600 /etc/cron.d/* /var/spool/cron/crontabs/pi
 
 # Use supervisord to start all processes
 supervisord -c /etc/supervisor/conf.d/supervisord.conf
