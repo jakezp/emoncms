@@ -1,27 +1,29 @@
 # Dockerfile for base image for emoncms
-FROM ubuntu:latest
+FROM ubuntu:18.04
 
-MAINTAINER jakezp
+LABEL maintainer="Jakezp <jakezp@gmail.com>"
 
 ENV DEBIAN_FRONTEND noninteractive
 
 # Install packages
-RUN apt-get update
-RUN apt-get -yq install supervisor apache2 mariadb-server mariadb-client php libapache2-mod-php php-mysql php-curl php-pear \
-    php-dev php-json git-core redis-server build-essential ufw ntp pwgen libmosquitto-dev gnupg libmcrypt-dev cron
-
-# Install pecl dependencies
-RUN pear channel-discover pear.swiftmailer.org
-RUN pecl install redis swift/swift
-RUN printf "\n" | pecl install Mosquitto-alpha
-RUN printf "\n" | pecl install mcrypt-1.0.1
-
-# Add pecl modules to php7 configuration
-RUN sh -c 'echo "extension=mcrypt.so" >> /etc/php/7.2/apache2/conf.d/mcrypt.ini'
-RUN sh -c 'echo "extension=mosquitto.so" > /etc/php/7.2/mods-available/mosquitto.ini'
-RUN sh -c 'echo "extension=redis.so" > /etc/php/7.2/mods-available/redis.ini'
-RUN phpenmod mosquitto
-RUN phpenmod redis
+RUN apt-get update \
+    && apt-get -yq install supervisor apache2 mariadb-server mariadb-client \
+    php libapache2-mod-php php-mysql php-curl php-pear \
+    php-dev php-json git-core redis-server \
+    build-essential ufw ntp pwgen \
+    libmosquitto-dev gnupg libmcrypt-dev cron \
+    && rm -rf /var/lib/apt/lists/*
+    
+# Install pecl dependencies and add pecl modules to php7 configuration
+RUN pear channel-discover pear.swiftmailer.org \
+    && pecl install redis swift/swift \
+    && printf "\n" | pecl install Mosquitto-alpha \
+    && printf "\n" | pecl install mcrypt-1.0.1 \
+    && sh -c 'echo "extension=mcrypt.so" >> /etc/php/7.2/apache2/conf.d/mcrypt.ini' \
+    && sh -c 'echo "extension=mosquitto.so" > /etc/php/7.2/mods-available/mosquitto.ini' \
+    && sh -c 'echo "extension=redis.so" > /etc/php/7.2/mods-available/redis.ini' \
+    && phpenmod mosquitto \
+    && phpenmod redis
 
 # Set timezone for php
 RUN sed -i 's/date.timezone \=/date.timezone \= Africa\/Johannesburg/g' /etc/php/7.2/apache2/php.ini
@@ -36,34 +38,26 @@ RUN sed -i '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/Allo
 # Set a server name for Apache
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# Add db setup script
+# Add scripts and configs
+ADD my.cnf /root/my.cnf
+ADD crontab /root/crontab
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 ADD run.sh /run.sh
 ADD db.sh /db.sh
 RUN chmod 755 /*.sh
 
-# MySQL config
-ADD my.cnf /root/my.cnf
-
-# Add cron for emailreport
-ADD crontab /root/crontab
-
-# Add supervisord configuration file
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-# Create required data repositories for emoncms feed engine
-RUN mkdir /var/lib/phpfiwa
-RUN mkdir /var/lib/phpfina
-RUN mkdir /var/lib/phptimeseries
-RUN mkdir /var/lib/timestore
-
-# Create log directories & files
-RUN mkdir /var/log/emoncms
-RUN touch /var/log/emoncms.log
-RUN touch /var/log/service-runner.log
-RUN touch /var/log/cron.log
-RUN chmod 666 /var/log/emoncms.log
-RUN chmod 666 /var/log/service-runner.log
-RUN chmod 666 /var/log/cron.log
+# Create required emoncms feed engine data repositories and log configuration 
+RUN mkdir /var/lib/phpfiwa \
+    && mkdir /var/lib/phpfina \
+    && mkdir /var/lib/phptimeseries \
+    && mkdir /var/lib/timestore \
+    && mkdir /var/log/emoncms \
+    && touch /var/log/emoncms.log \
+    && touch /var/log/service-runner.log \ 
+    && touch /var/log/cron.log \ 
+    &&chmod 666 /var/log/emoncms.log \ 
+    && chmod 666 /var/log/service-runner.log \
+    && chmod 666 /var/log/cron.log
 
 # Expose them as volumes for mounting by host
 VOLUME ["/etc/mysql", "/var/lib/mysql", "/var/lib/phpfiwa", "/var/lib/phpfina", "/var/lib/phptimeseries", "/var/www/html", "/var/spool/cron/crontabs/", "/home/pi"]
