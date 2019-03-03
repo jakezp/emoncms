@@ -82,12 +82,12 @@ if [[ ! -f $SETPHP ]]; then
   sed -i 's/$homedir = "\/home\/username"/$homedir = "\/home\/pi"/' "$EMON_DIR/settings.php"
   # Configure MQTT if host is specified
   if [[ -n $MQTT_HOST ]]; then
-    sed -i "s/mqtt_enabled = false;/mqtt_enabled = true;/" "$EMON_DIR/settings.php"
-    sed -i "/mqtt_server = array( 'host'     => '127.0.0.1'/,+6d" "$EMON_DIR/settings.php"
+    sed -i "/mqtt_server = array( 'host'     => '.*',/,+6d" "$EMON_DIR/settings.php"   
+    sed -i "s/mqtt_enabled = false;.*$/mqtt_enabled = true;/" "$EMON_DIR/settings.php"
     if [[ -z $MQTT_PORT ]]; then
       MQTT_PORT="1883"
     fi
-    sed -i "s/$mqtt_enabled = true;.*/$mqtt_enabled = true;\n    $mqtt_server = array( 'host'     => '$MQTT_HOST',\n              'port'     => $MQTT_PORT,\n              'user'     => '$MQTT_USER',\n              'password' => '$MQTT_PASS',\n              'basetopic'=> 'emon',\n              'client_id' => 'emoncms'\n              );/g" $EMON_DIR/settings.php
+    sed -i "s/\$mqtt_enabled = true;.*$/\$mqtt_enabled = true;\n    \$mqtt_server = array( 'host'     => '$MQTT_HOST',\n\t\t\t  'port'     => $MQTT_PORT,\n\t\t\t  'user'     => '$MQTT_USER',\n\t\t\t  'password' => '$MQTT_PASS',\n\t\t\t  'basetopic'=> 'emon',\n\t\t\t  'client_id' => 'emoncms'\n\t\t\t  );/"
   fi
   if [[ ! -f /home/pi/backup.php ]]; then
     cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
