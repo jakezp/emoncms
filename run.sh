@@ -95,6 +95,9 @@ if [[ ! -f $SETPHP ]]; then
   fi
 fi
 
+# Disable directory listing on Apache
+sed -i 's/# Options -Indexes/Options -Indexes/' /var/www/html/.htaccess
+
 echo "==========================================================="
 echo "The username and password for the emoncms user is:"
 echo ""
