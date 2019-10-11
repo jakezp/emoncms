@@ -71,25 +71,86 @@ fi
 
 # Update the settings file for emoncms
 EMON_DIR="/var/www/html"
-SETPHP="$EMON_DIR/settings.php"
+SETPHP="$EMON_DIR/settings.ini"
 if [[ ! -f $SETPHP ]]; then
-  echo -e "\n=> Updating settings.php\n"
+  echo -e "\n=> Creating settings.ini\n"
   touch "$EMON_DIR/settings.ini"
-  cp "$EMON_DIR/default-settings.php" "$EMON_DIR/settings.php"
-  sed -i "s/_DB_USER_/emoncms/" "$EMON_DIR/settings.php"
-  sed -i "s/_DB_PASSWORD_/$MYSQL_PASSWORD/" "$EMON_DIR/settings.php"
-  sed -i "s/localhost/127.0.0.1/" "$EMON_DIR/settings.php"
-  sed -i "s/redis_enabled = false;/redis_enabled = true;/" "$EMON_DIR/settings.php"
-  sed -i 's/$homedir = "\/home\/username"/$homedir = "\/home\/pi"/' "$EMON_DIR/settings.php"
-  # Configure MQTT if host is specified
+  # Configure MySQL
+  cat <<EOF > "$EMON_DIR/settings.ini"
+; -----------------------------------------------------
+; emoncms settings.ini file
+; -----------------------------------------------------
+
+; Mysql database settings
+[sql]
+server   = "127.0.0.1"
+database = "emoncms"
+username = "emoncms"
+password = "$MYSQL_PASSWORD"
+port     = 3306
+; Skip database setup test - set to false once database has been setup.
+dbtest   = false
+
+; Redis
+[redis]
+enabled = false
+host = '127.0.0.1'
+port = 6379
+auth = ''
+dbnum = ''
+prefix = 'emoncms'
+
+; Default feed viewer: "vis/auto?feedid=" or "graph/" - requires module https://github.com/emoncms/graph
+feedviewpath = "vis/auto?feedid="
+
+; If installed on Emonpi, allow admin menu tools
+enable_admin_ui = true
+EOF
+
   if [[ -n $MQTT_HOST ]]; then
-    sed -i "/mqtt_server = array( 'host'     => '.*',/,+6d" "$EMON_DIR/settings.php"   
-    sed -i "s/mqtt_enabled = false;.*$/mqtt_enabled = true;/" "$EMON_DIR/settings.php"
     if [[ -z $MQTT_PORT ]]; then
       MQTT_PORT="1883"
     fi
-    sed -i "s/\$mqtt_enabled = true;.*$/\$mqtt_enabled = true;\n    \$mqtt_server = array( 'host'     => '$MQTT_HOST',\n\t\t\t  'port'     => $MQTT_PORT,\n\t\t\t  'user'     => '$MQTT_USER',\n\t\t\t  'password' => '$MQTT_PASS',\n\t\t\t  'basetopic'=> 'emon',\n\t\t\t  'client_id' => 'emoncms'\n\t\t\t  );/" "$EMON_DIR/settings.php"
+    cat <<EOF >> "$EMON_DIR/settings.ini"
+; MQTT
+[mqtt]
+enabled = false
+host = '$MQTT_HOST'
+port = $MQTT_PORT
+user = '$MQTT_USER'
+password = '$MQTT_PASS'
+basetopic = 'emon'
+client_id = 'emoncms'
+EOF
+  fi    
+
+  if [[ -n $EMAIL_FROM ]] && [[ -n $EMAIL_HOST ]]; then
+    cat <<EOF >> "$EMON_DIR/settings.ini"
+; Email SMTP, used for password reset or other email functions
+[smtp]
+default_emailto = '$EMAIL_TO'
+host = "$EMAIL_HOST"
+port = "$EMAIL_PORT"
+from_email = '$EMAIL_FROM'
+from_name = '$EMAIL_NAME'
+encryption = "$EMAIL_ENCRYPT"
+username = "$EMAIL_USER"
+password = "$EMAIL_PASS"
+EOF
   fi
+  
+  if [[ -z $EMAIL_ENCRYPT ]]; then
+    sed -i 's/encryption\ =\ \"\"/\;encryption\ =\ \"\"/g' "$EMON_DIR/settings.ini"
+  fi
+
+  if [[ -z $EMAIL_USERNAME ]]; then
+    sed -i "/\[smtp\]/{n;n;n;n;n;n;n;s/.*/\;username\ =\ \"\"/}" "$EMON_DIR/settings.ini"    # Disable SMTP username
+  fi
+
+  if [[ -z $EMAIL_PASSWORD ]]; then
+    sed -i "/\[smtp\]/{n;n;n;n;n;n;n;n;s/.*/\;password\ =\ \"\"/}" "$EMON_DIR/settings.ini"    # Disable SMTP password
+  fi
+
   if [[ ! -f /home/pi/backup.php ]]; then
     cp /usr/local/bin/emoncms_usefulscripts/backup/backup.php /home/pi/backup.php
     cp -R /usr/local/bin/emoncms_usefulscripts/backup/lib /home/pi/
@@ -116,6 +177,10 @@ if [[ ! -f /var/spool/cron/crontabs/pi ]]; then
 fi
 touch /etc/crontab /etc/cron.d/* /var/spool/cron/crontabs/*
 chmod 0600 /etc/cron.d/* /var/spool/cron/crontabs/pi
+
+# Configure logs
+touch /var/log/emoncms/emoncms.log
+chmod 666 /var/log/emoncms/emoncms.log
 
 # Use supervisord to start all processes
 supervisord -c /etc/supervisor/conf.d/supervisord.conf
