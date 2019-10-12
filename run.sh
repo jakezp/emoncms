@@ -32,8 +32,11 @@ git clone https://github.com/emoncms/device.git /var/www/html/Modules/device
 git clone https://github.com/emoncms/graph.git /var/www/html/Modules/graph
 git clone https://github.com/emoncms/sync.git /home/pi/sync
 git clone https://github.com/openenergymonitor/emonpi.git /home/pi/emonpi
+git clone https://github.com/emoncms/postprocess.git /home/pi/postprocess
 ln -s /home/pi/sync/sync-module /var/www/html/Modules/sync
+ln -s /home/pi/postprocess/postprocess-module /var/www/html/Modules/postprocess
 ln -s /var/www/html /var/www/emoncms
+cp /home/pi/postprocess/default.postprocess.settings.php /home/pi/postprocess/postprocess.settings.php
 
 # Prepare mysql
 if [[ ! -f /etc/mysql/my.cnf ]]; then
@@ -114,7 +117,7 @@ EOF
     cat <<EOF >> "$EMON_DIR/settings.ini"
 ; MQTT
 [mqtt]
-enabled = false
+enabled = true
 host = '$MQTT_HOST'
 port = $MQTT_PORT
 user = '$MQTT_USER'
@@ -180,7 +183,9 @@ chmod 0600 /etc/cron.d/* /var/spool/cron/crontabs/pi
 
 # Configure logs
 touch /var/log/emoncms/emoncms.log
+touch /var/log/emoncms/postprocess.log
 chmod 666 /var/log/emoncms/emoncms.log
+chmod 666 /var/log/emoncms/postprocess.log
 
 # Use supervisord to start all processes
 supervisord -c /etc/supervisor/conf.d/supervisord.conf
