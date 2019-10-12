@@ -122,7 +122,7 @@ host = '$MQTT_HOST'
 port = $MQTT_PORT
 user = '$MQTT_USER'
 password = '$MQTT_PASS'
-basetopic = 'emon'
+basetopic = 'emoncms'
 client_id = 'emoncms'
 EOF
   fi    
